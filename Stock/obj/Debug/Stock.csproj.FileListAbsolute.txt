@@ -1,0 +1,17 @@
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\Stock.exe.config
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\Stock.exe
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\Stock.pdb
+C:\Users\Home\Desktop\Stock\Stock\obj\Debug\Stock.exe
+C:\Users\Home\Desktop\Stock\Stock\obj\Debug\Stock.pdb
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\HtmlAgilityPack.dll
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\HtmlAgilityPack.pdb
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\HtmlAgilityPack.xml
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\NPOI.dll
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\Home\Desktop\Stock\Stock\bin\Debug\NPOI.xml
+C:\Users\Home\Desktop\Stock\Stock\obj\Debug\Stock.csprojResolveAssemblyReference.cache
+D:\project\Stock\Stock\bin\Debug\Stock.exe.config
+D:\project\Stock\Stock\obj\Debug\Stock.exe
+D:\project\Stock\Stock\obj\Debug\Stock.pdb
+D:\project\Stock\Stock\bin\Debug\Stock.exe
+D:\project\Stock\Stock\bin\Debug\Stock.pdb
