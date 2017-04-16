@@ -15,3 +15,15 @@ D:\project\Stock\Stock\obj\Debug\Stock.exe
 D:\project\Stock\Stock\obj\Debug\Stock.pdb
 D:\project\Stock\Stock\bin\Debug\Stock.exe
 D:\project\Stock\Stock\bin\Debug\Stock.pdb
+D:\project\Stock\Stock\Stock\bin\Debug\Stock.exe.config
+D:\project\Stock\Stock\Stock\obj\Debug\Stock.exe
+D:\project\Stock\Stock\Stock\obj\Debug\Stock.pdb
+D:\project\Stock\Stock\Stock\bin\Debug\Stock.exe
+D:\project\Stock\Stock\Stock\bin\Debug\Stock.pdb
+D:\project\Stock\Stock\Stock\bin\Debug\HtmlAgilityPack.dll
+D:\project\Stock\Stock\Stock\bin\Debug\NPOI.dll
+D:\project\Stock\Stock\Stock\bin\Debug\ICSharpCode.SharpZipLib.dll
+D:\project\Stock\Stock\Stock\bin\Debug\HtmlAgilityPack.pdb
+D:\project\Stock\Stock\Stock\bin\Debug\HtmlAgilityPack.xml
+D:\project\Stock\Stock\Stock\bin\Debug\NPOI.xml
+D:\project\Stock\Stock\Stock\obj\Debug\Stock.csprojResolveAssemblyReference.cache

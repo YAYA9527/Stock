@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -25,27 +26,17 @@ namespace Stock
                 Console.Write("下載開始!!");
 
                 //取股市資料
-                string param = "input_date=" + args[1] + "/" + args[2] + "/" + args[3] + "&select2=" + args[4] + "&order=STKNO";
+                string param = "qdate=" + args[1] + "/" + args[2] + "/" + args[3] + "&select2=" + args[4] + "&Sort_kind=STKNO&download=html";
                 byte[] paramBytes = Encoding.ASCII.GetBytes(param);
-                string webResponse = StockWeb(paramBytes, "http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php", Encoding.GetEncoding(950));
+                string webResponse = StockWeb(paramBytes, "http://www.twse.com.tw/ch/trading/exchange/BWIBBU/BWIBBU_d.php", Encoding.UTF8);
 
                 //將資料寫入Excel(建立來源檔案)
                 HtmlDocument stockDataHtmlDoc = new HtmlDocument();
-                stockDataHtmlDoc.LoadHtml(webResponse);
-                string stockData = stockDataHtmlDoc.GetElementbyId("html").GetAttributeValue("value", "null");
-                if (stockData != "null" && !stockData.Contains("查無資料"))
-                {
-                   
-                    
+                stockDataHtmlDoc.LoadHtml(webResponse);              
+                if (webResponse != "null" && !webResponse.Contains("查無資料"))
+                {                                       
                     string path = args[5] + "StockDataExport_" + args[1] + "_" + args[2] + "_" + args[3] + "_" + args[4] + ".xls";
-                    //StreamWriter sw = new StreamWriter(path, false, Encoding.GetEncoding(950));
-                    //sw.Write("證券代號\t證券名稱\t本益比\t殖利率(%)\t股價淨值比");
-
-                    stockDataHtmlDoc.LoadHtml(stockData);
-                    RenderDataToExcel(stockDataHtmlDoc, path);
-                    
-                    //sw.Flush();
-                    //sw.Close();
+                    RenderDataToExcel(stockDataHtmlDoc, path);                   
                 }
                 Console.Write("下載結束!!");
             }
@@ -60,12 +51,13 @@ namespace Stock
 
         public static void RenderDataToExcel(HtmlDocument StockDataHtmlDoc, string Path)
         {
+            HtmlDocument StockTableDataHtmlDoc = new HtmlDocument();
             MemoryStream ms = new MemoryStream();
             FileStream DownloadFileStream = new FileStream(Path, FileMode.Create, FileAccess.Write);
             
             //建立Excel資料
             int Row = 0;
-            int Column = 0;
+            int Count = 0;
             HSSFWorkbook ExcelWorkBook = new HSSFWorkbook();
             ISheet ExcelSheet = ExcelWorkBook.CreateSheet("股市資料");
             ExcelSheet.CreateRow(0).CreateCell(0).SetCellValue("證券代號");
@@ -73,16 +65,15 @@ namespace Stock
             ExcelSheet.GetRow(0).CreateCell(2).SetCellValue("本益比");
             ExcelSheet.GetRow(0).CreateCell(3).SetCellValue("殖利率(%)");
             ExcelSheet.GetRow(0).CreateCell(4).SetCellValue("股價淨值比");
-            foreach (HtmlNode trnode in StockDataHtmlDoc.DocumentNode.SelectNodes(".//tbody/tr"))
+            foreach (HtmlNode tdnode in StockDataHtmlDoc.DocumentNode.SelectNodes("//tbody//td"))
             {
-                Row++;
-                Column = 0;
-                ExcelSheet.CreateRow(Row);
-                foreach (HtmlNode tdnode in trnode.SelectNodes(".//td"))
+                if ((Count % 5) == 0)
                 {
-                    ExcelSheet.GetRow(Row).CreateCell(Column).SetCellValue(tdnode.InnerText);
-                    Column++;
+                    Row++;
+                    ExcelSheet.CreateRow(Row);
                 }
+                ExcelSheet.GetRow(Row).CreateCell((Count % 5)).SetCellValue(tdnode.InnerText);
+                Count++;
             }
 
             //建立Excel檔案
@@ -94,8 +85,9 @@ namespace Stock
 
         private static void StockAnalysis(string Source, string Target)
         {
+            HSSFWorkbook ReadWriteTargetFile = new HSSFWorkbook(new FileStream(Target + "AnalysisData.xls", FileMode.Open, FileAccess.ReadWrite));
+
             //取得來源資料夾內所有檔案
-            HSSFWorkbook ReadTargetFile = new HSSFWorkbook(new FileStream(Target + "AnalysisData.xls", FileMode.Open, FileAccess.Read));
             foreach (string FileName in Directory.GetFiles(Source, "*.xls", SearchOption.TopDirectoryOnly))
             {
                 string[] FileNameArray = FileName.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
@@ -107,46 +99,60 @@ namespace Stock
                 }
                 else
                 {
-                    InitData(FileNameArray[1], FileNameArray[2], ReadTargetFile);
-                    ProcessData(FileNameArray[1], FileNameArray[2], ReadSourceFile);
-                    SaveData(ReadTargetFile, Target);
+                    //建立要處理資料的物件(讀取目標檔案)
+                    InitData(FileNameArray[1], FileNameArray[2], ReadWriteTargetFile);
+                    //將來源檔案資料存到物件中
+                    ProcessData(FileNameArray[1], FileNameArray[2], ReadSourceFile);                    
                 }
             }
+            //將物件存到目標檔案中
+            SaveData(ReadWriteTargetFile, Target);
         }
 
-        private static void SaveData(HSSFWorkbook ReadTargetFile, string Target)
+        private static void SaveData(HSSFWorkbook ReadWriteTargetFile, string Target)
         {
             foreach (YearData YearDataObj in YearDataList)
             {
-                ISheet TargetFileSheet = ReadTargetFile.GetSheetAt(Convert.ToInt16(YearDataObj.Id));
+                ISheet TargetFileSheet = ReadWriteTargetFile.GetSheetAt(Convert.ToInt16(YearDataObj.Id));
                 foreach (MonthData MonthDataObj in YearDataObj.MonthData)
                 {
                     foreach (StockData StockDataObj in MonthDataObj.StockData)
                     {
                         int BasicColumn = GetColumnByMonth(MonthDataObj.Month);
                         IRow TargetFileRow = TargetFileSheet.GetRow(StockDataObj.Row);
+                        if(TargetFileRow == null)
+                        {
+                            TargetFileRow = TargetFileSheet.CreateRow(StockDataObj.Row);
+                        }
                         ICell TargetFilePerCell = TargetFileRow.GetCell(BasicColumn);
+                        if(TargetFilePerCell == null)
+                        {
+                            TargetFilePerCell = TargetFileRow.CreateCell(BasicColumn);
+                        }
                         TargetFilePerCell.SetCellValue(Math.Round((StockDataObj.Per / StockDataObj.PerCount), 2));
                         ICell TargetFileYieldCell = TargetFileRow.GetCell(BasicColumn + 1);
+                        if (TargetFileYieldCell == null)
+                        {
+                            TargetFileYieldCell = TargetFileRow.CreateCell(BasicColumn + 1);
+                        }
                         TargetFileYieldCell.SetCellValue(Math.Round((StockDataObj.Yield / StockDataObj.YieldCount), 2));
                         ICell TargetFilePbrCell = TargetFileRow.GetCell(BasicColumn + 2);
+                        if (TargetFilePbrCell == null)
+                        {
+                            TargetFilePbrCell = TargetFileRow.CreateCell(BasicColumn + 2);
+                        }
                         TargetFilePbrCell.SetCellValue(Math.Round((StockDataObj.Pbr / StockDataObj.PbrCount), 2));
                         if (StockDataObj.IsNew)  //新增的資料
                         {
-                            ICell TargetFileIdCell = TargetFileRow.GetCell(0);
+                            ICell TargetFileIdCell = TargetFileRow.CreateCell(0);
                             TargetFileIdCell.SetCellValue(Convert.ToInt32(StockDataObj.Id));
-                            ICell TargetFileNameCell = TargetFileRow.GetCell(1);
+                            ICell TargetFileNameCell = TargetFileRow.CreateCell(1);
                             TargetFileNameCell.SetCellValue(StockDataObj.Name);
-                            //TargetFileSheet.ShiftRows()
-                            //int InsertIndex = MonthDataObj.StockData.FindIndex(row => Convert.ToInt32(row.Id) > Convert.ToInt32(StockDataObj.Id));
-                            //MonthDataObj.StockData.Insert(InsertIndex, StockDataObj);
-                            //MonthDataObj.StockData[InsertIndex].Row = MonthDataObj.StockData[InsertIndex + 1].Row;
-                            //for(int StratIndex = InsertIndex + 1, Count = ;)
                         }
                     }
                 }
             }
-            ReadTargetFile.Write(new FileStream(Target + "AnalysisData.xls", FileMode.Open, FileAccess.Write));
+            ReadWriteTargetFile.Write(new FileStream(Target + "AnalysisData.xls", FileMode.Open, FileAccess.Write));
         }
 
         private static int GetColumnByMonth(string Month)
@@ -187,27 +193,27 @@ namespace Stock
                     YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Row = YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex - 1].Row + 1;
                 }
                 //本益比
-                if (SourceFileRow.GetCell(2).CellType == CellType.Numeric && SourceFileRow.GetCell(2).NumericCellValue != 0)
+                if (SourceFileRow.GetCell(2).StringCellValue != "-" && SourceFileRow.GetCell(2).StringCellValue != "0.00")
                 {
                     YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].PerCount++;
-                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Per += SourceFileRow.GetCell(2).NumericCellValue;
+                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Per += Convert.ToDouble(SourceFileRow.GetCell(2).StringCellValue);
                 }
                 //殖利率
-                if (SourceFileRow.GetCell(3).CellType == CellType.Numeric && SourceFileRow.GetCell(3).NumericCellValue != 0)
+                if (SourceFileRow.GetCell(3).StringCellValue != "-" && SourceFileRow.GetCell(3).StringCellValue != "0.00")
                 {
                     YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].YieldCount++;
-                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Yield += SourceFileRow.GetCell(3).NumericCellValue;
+                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Yield += Convert.ToDouble(SourceFileRow.GetCell(3).StringCellValue);
                 }
                 //股價淨值比
-                if (SourceFileRow.GetCell(4).CellType == CellType.Numeric && SourceFileRow.GetCell(4).NumericCellValue != 0)
+                if (SourceFileRow.GetCell(4).StringCellValue != "-" && SourceFileRow.GetCell(4).StringCellValue != "0.00")
                 {
                     YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].PbrCount++;
-                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Pbr += SourceFileRow.GetCell(4).NumericCellValue;
+                    YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData[StockDataIndex].Pbr += Convert.ToDouble(SourceFileRow.GetCell(4).StringCellValue);
                 }
             }
         }
 
-        private static void InitData(string Year, string Month, HSSFWorkbook ReadTargetFile)
+        private static void InitData(string Year, string Month, HSSFWorkbook ReadWriteTargetFile)
         {
             //第幾年
             string YearId = GetYearDataID(Year, Month);
@@ -226,7 +232,7 @@ namespace Stock
             {
                 YearDataList[YearDataIndex].MonthData.Add(new MonthData { Month = Month });
                 int MonthDataIndex = YearDataList[YearDataIndex].MonthData.FindIndex(row => row.Month == Month);
-                ISheet TargetFileSheet = ReadTargetFile.GetSheetAt(Convert.ToInt16(YearId));
+                ISheet TargetFileSheet = ReadWriteTargetFile.GetSheetAt(Convert.ToInt16(YearId));
                 if (YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData == null)
                 {
                     YearDataList[YearDataIndex].MonthData[MonthDataIndex].StockData = new List<StockData>();
