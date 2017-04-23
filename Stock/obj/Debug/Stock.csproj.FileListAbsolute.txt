@@ -27,3 +27,5 @@ D:\project\Stock\Stock\Stock\bin\Debug\HtmlAgilityPack.pdb
 D:\project\Stock\Stock\Stock\bin\Debug\HtmlAgilityPack.xml
 D:\project\Stock\Stock\Stock\bin\Debug\NPOI.xml
 D:\project\Stock\Stock\Stock\obj\Debug\Stock.csprojResolveAssemblyReference.cache
+D:\project\Stock\Stock\bin\Debug\HtmlAgilityPack.xml
+D:\project\Stock\Stock\bin\Debug\NPOI.xml

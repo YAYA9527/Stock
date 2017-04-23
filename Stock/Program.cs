@@ -38,6 +38,7 @@ namespace Stock
                     string path = args[5] + "StockDataExport_" + args[1] + "_" + args[2] + "_" + args[3] + "_" + args[4] + ".xls";
                     RenderDataToExcel(stockDataHtmlDoc, path);                   
                 }
+
                 Console.Write("下載結束!!");
             }
             else if (args[0] == "Analyze")
@@ -287,6 +288,7 @@ namespace Stock
         }
 
     }
+
     class StockData
     {
         public string Id { set; get; }
