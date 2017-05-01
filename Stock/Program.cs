@@ -23,8 +23,6 @@ namespace Stock
         {            
             if (args[0] == "Download")
             {
-                Console.Write("下載開始!!");
-
                 //取股市資料
                 string param = "qdate=" + args[1] + "/" + args[2] + "/" + args[3] + "&select2=" + args[4] + "&Sort_kind=STKNO&download=html";
                 byte[] paramBytes = Encoding.ASCII.GetBytes(param);
@@ -32,22 +30,24 @@ namespace Stock
 
                 //將資料寫入Excel(建立來源檔案)
                 HtmlDocument stockDataHtmlDoc = new HtmlDocument();
-                stockDataHtmlDoc.LoadHtml(webResponse);              
+                stockDataHtmlDoc.LoadHtml(webResponse);
                 if (webResponse != "null" && !webResponse.Contains("查無資料"))
-                {                                       
+                {
                     string path = args[5] + "StockDataExport_" + args[1] + "_" + args[2] + "_" + args[3] + "_" + args[4] + ".xls";
-                    RenderDataToExcel(stockDataHtmlDoc, path);                   
+                    RenderDataToExcel(stockDataHtmlDoc, path);
+                    Console.WriteLine(args[1] + "/" + args[2] + "/" + args[3] + " 下載完成!!");
                 }
-
-                Console.Write("下載結束!!");
+                else
+                {
+                    Console.WriteLine(args[1] + "/" + args[2] + "/" + args[3] + " 查無資料!!");
+                }                
             }
             else if (args[0] == "Analyze")
             {
-                Console.Write("分析開始!!");
+                Console.WriteLine("分析開始!!");
                 StockAnalysis(args[1], args[2]);
-                Console.Write("分析完成!!");
+                Console.WriteLine("分析完成!!");
             }
-            Console.ReadKey();
         }
 
         public static void RenderDataToExcel(HtmlDocument StockDataHtmlDoc, string Path)

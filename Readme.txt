@@ -6,14 +6,32 @@
 把计5:琩高ら
 把计6:だ摸兜ヘ腹
 把计7:块郎竚(程璶Τ\)
-絛ㄒ:Stock.exe Download 106 04 07 ALL D:\StockOutputData\Source\
+絛ㄒ(106/04/07):Exe\Stock.exe Download 106 04 07 ALL D:\StockOutputData\Source\
+絛ㄒ(105/10-105/12):
+for /L %%m in (10 1 12) do (
+	for /L %%d in (1 1 31) do (
+		if %%m LSS 10 (
+			if %%d LSS 10 (
+				Exe\Stock.exe Download 105 0%%m 0%%d ALL D:\StockOutputData\Source\
+			) else (
+				Exe\Stock.exe Download 105 0%%m %%d ALL D:\StockOutputData\Source\
+			)
+		) else (
+			if %%d LSS 10 (
+				Exe\Stock.exe Download 105 %%m 0%%d ALL D:\StockOutputData\Source\
+			) else (
+				Exe\Stock.exe Download 105 %%m %%d ALL D:\StockOutputData\Source\
+			)
+		)
+	)
+)
 
 だ猂カ戈:
 把计1:Stock.exe郎竚 
 把计2:Analyze
 把计3:ㄓ方戈Ж
 把计4:ヘ夹戈Ж(程璶Τ\)
-絛ㄒ:Stock.exe Analyze D:\StockOutputData\Source D:\StockOutputData\
+絛ㄒ:Exe\Stock.exe Analyze D:\StockOutputData\Source D:\StockOutputData\
 
 猔種ㄆ兜:
 1.矪瞶ㄓ方戈Жず郎(ぃ糷郎)
